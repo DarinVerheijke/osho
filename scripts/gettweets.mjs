@@ -1,4 +1,4 @@
-import { Scraper } from "agent-twitter-client";
+import { Scraper } from "darinv-agent-twitter-client";
 import dotenv from "dotenv";
 import fs from "fs";
 

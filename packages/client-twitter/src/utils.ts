@@ -1,4 +1,4 @@
-import { Tweet } from "agent-twitter-client";
+import { Tweet } from "darinv-agent-twitter-client";
 import { embeddingZeroVector } from "@ai16z/eliza/src/memory.ts";
 import { Content, Memory, UUID } from "@ai16z/eliza/src/types.ts";
 import { stringToUuid } from "@ai16z/eliza/src/uuid.ts";
@@ -111,14 +111,26 @@ export async function sendTweetChunks(
     const sentTweets: Tweet[] = [];
 
     for (const chunk of tweetChunks) {
+        let imageBuffer: Buffer | undefined;
+    if (content.images?.[0]) {
+      if (content.images[0].startsWith('data:image')) {
+        // Handle base64 image
+        const base64Data = content.images[0].replace(/^data:image\/[a-z]+;base64,/, "");
+        imageBuffer = Buffer.from(base64Data, 'base64');
+      } else {
+        // Handle URL image
+        try {
+          const response = await fetch(content.images[0]);
+          const arrayBuffer = await response.arrayBuffer();
+          imageBuffer = Buffer.from(arrayBuffer);
+        } catch (error) {
+          console.error('Failed to fetch image:', error);
+        }
+            }
+        }
         const result = await client.requestQueue.add(
-            async () =>
-                await client.twitterClient.sendTweet(
-                    chunk.replaceAll(/\\n/g, "\n").trim(),
-                    inReplyTo
-                )
+            async () => await client.twitterClient.sendTweet(chunk.replaceAll(/\\n/g, "\n").trim(), inReplyTo, imageBuffer),
         );
-        // console.log("send tweet result:\n", result);
         const body = await result.json();
         console.log("send tweet body:\n", body.data.create_tweet.tweet_results);
         const tweetResult = body.data.create_tweet.tweet_results.result;

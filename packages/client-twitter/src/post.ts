@@ -1,4 +1,4 @@
-import { Tweet } from "agent-twitter-client";
+import { Tweet } from "darinv-agent-twitter-client";
 import fs from "fs";
 import { composeContext } from "@ai16z/eliza/src/context.ts";
 import { generateText } from "@ai16z/eliza/src/generation.ts";

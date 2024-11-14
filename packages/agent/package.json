@@ -12,14 +12,14 @@
         "start:all": "node --loader ts-node/esm src/index.ts --characters=\"../characters/eliza.json\",\"../characters/degenspartan.json\",\"../characters/ruby.json\",\"../characters/pmairca.json\""
     },
     "dependencies": {
-        "@ai16z/eliza": "workspace:*",
         "@ai16z/adapter-postgres": "workspace:*",
         "@ai16z/adapter-sqlite": "workspace:*",
-        "@ai16z/client-direct": "workspace:*",
         "@ai16z/client-auto": "workspace:*",
+        "@ai16z/client-direct": "workspace:*",
         "@ai16z/client-discord": "workspace:*",
         "@ai16z/client-telegram": "workspace:*",
         "@ai16z/client-twitter": "workspace:*",
+        "@ai16z/eliza": "workspace:*",
         "@ai16z/plugin-bootstrap": "workspace:*",
         "@ai16z/plugin-image-generation": "workspace:*",
         "@ai16z/plugin-node": "workspace:*",
@@ -28,7 +28,9 @@
         "yargs": "17.7.2"
     },
     "devDependencies": {
+        "@types/node": "22.8.4",
         "ts-node": "10.9.2",
-        "tsup": "^8.3.5"
+        "tsup": "^8.3.5",
+        "typescript": "5.6.3"
     }
 }

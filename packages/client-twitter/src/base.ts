@@ -12,7 +12,7 @@ import {
     Scraper,
     SearchMode,
     Tweet,
-} from "agent-twitter-client";
+} from "darinv-agent-twitter-client";
 import { EventEmitter } from "events";
 import fs from "fs";
 import path from "path";

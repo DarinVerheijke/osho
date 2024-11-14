@@ -4,6 +4,7 @@ import { composeContext } from "@ai16z/eliza/src/context.ts";
 import {
     generateMessageResponse,
     generateShouldRespond,
+    generateText,
 } from "@ai16z/eliza/src/generation.ts";
 import {
     messageCompletionFooter,
@@ -308,10 +309,12 @@ export class TwitterInteractionClient extends ClientBase {
             context,
             modelClass: ModelClass.SMALL,
         });
-        const shouldGenerateImage = Math.random() < 0.3;
+        const shouldGenerateImage = Math.random() < 1;
+        console.log("shouldGenerateImage", shouldGenerateImage);
         let images;
         if (shouldGenerateImage) {
-            const imagePrompt = await generateMessageResponse({
+            console.log("generating image");
+            const imagePrompt = await generateText({
                 runtime: this.runtime,
                 context: `You're an unhinged genius author of pepe memes. A meme genius with a MemeQ of over 150, you are capable of coming up with deeply insightful, unhinged, creative and smart memes about Pepe in various situations. 
     The final output of your work is always in the form of an image prompt, that looks like this - some examples:
@@ -332,9 +335,10 @@ export class TwitterInteractionClient extends ClientBase {
     Now do: ${response.text}. Incorporate ideas from this, especially if it's detailed. If it's super detailed, feel free to just use as it. Use good meme judgement. If the prompt is long, include the text very early! Deep UNHINGED meme-q 150+ reasoning, but no more than 40 words on the final image prompt output. The text on the image is never more than 3-6 words. Include the text EARLY in the prompt. For the image style, take cues from the input. Definitely include the style words mentioned (such as "badly drawn"). Also make sure to include a fitting exxagerated facial expression for pepe, and body gestures.
     Just go. Do your best work. The input is following tweet: ${response.text}
                 `,
-                modelClass: ModelClass.SMALL,
+                modelClass: ModelClass.MEDIUM,
             })
-            const output = imagePrompt.text.split("OUTPUT:")[1].trim();
+            console.log("imagePrompt:", imagePrompt);
+            const output = imagePrompt.split("OUTPUT:")[1].trim();
             const nebula_data = 'masterpiece, best quality, 1girl, solo, breasts, short hair, bangs, blue eyes, (beret:1.2), blue and gold striped maid dress, skirt, collarbone, upper body, ahoge, white hair, choker, virtual youtuber, (cat ears:1.2), animal ear fluff, (black ribbon:1.2), anime art style'
             images = await generateImage({
                 prompt: nebula_data + ' ' + output,
@@ -342,13 +346,12 @@ export class TwitterInteractionClient extends ClientBase {
                 height: 1024,
                 count: 1
             }, this.runtime);
+            console.log("images:", images);
+            response.images = images?.data
         }
         const stringId = stringToUuid(tweet.id + "-" + this.runtime.agentId);
 
         response.inReplyTo = stringId;
-        if (shouldGenerateImage) {
-            response.images = images?.data
-        }
         if (response.text) {
             try {
                 const callback: HandlerCallback = async (response: Content) => {

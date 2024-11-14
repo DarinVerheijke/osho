@@ -185,13 +185,23 @@ export async function sendTweet(
 ): Promise<Memory[]> {
     const chunk = truncateTweetContent(content.text);
     const sentTweets: Tweet[] = [];
-
+    let imageBuffer: Buffer | undefined;
+    if (content.images?.[0]) {
+        if (content.images[0].startsWith('data:image')) {
+            const base64Data = content.images[0].replace(/^data:image\/[a-z]+;base64,/, "");
+            imageBuffer = Buffer.from(base64Data, 'base64');
+        }
+    } else {
+        try {
+            const response = await fetch(content.images[0]);
+            const arrayBuffer = await response.arrayBuffer();
+            imageBuffer = Buffer.from(arrayBuffer);
+        } catch (error) {
+            console.error('Failed to fetch image:', error);
+        }
+    }
     const result = await client.requestQueue.add(
-        async () =>
-            await client.twitterClient.sendTweet(
-                chunk.replaceAll(/\\n/g, "\n").trim(),
-                inReplyTo
-            )
+        async () => await client.twitterClient.sendTweet(chunk.replaceAll(/\\n/g, "\n").trim(), inReplyTo, imageBuffer),
     );
     // console.log("send tweet result:\n", result);
     const body = await result.json();

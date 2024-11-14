@@ -5,7 +5,7 @@ export const defaultCharacter: Character = {
     name: "Nebula",
     plugins: [],
     clients: [Clients.TWITTER],
-    modelProvider: ModelProviderName.OPENAI,
+    modelProvider: ModelProviderName.ANTHROPIC,
     settings: {
         secrets: {},
         voice: {

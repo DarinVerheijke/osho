@@ -670,10 +670,10 @@ export const generateImage = async (
     const modelSettings = models[runtime.character.modelProvider].imageSettings;
     // some fallbacks for backwards compat, should remove in the future
     const apiKey =
-        runtime.token ??
         runtime.getSetting("TOGETHER_API_KEY") ??
-        runtime.getSetting("OPENAI_API_KEY");
-
+        runtime.getSetting("OPENAI_API_KEY") ??
+        runtime.token;
+    console.log("apiKey", apiKey);
     try {
         if (runtime.character.modelProvider === ModelProviderName.LLAMACLOUD) {
             const together = new Together({ apiKey: apiKey as string });

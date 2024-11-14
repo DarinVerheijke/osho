@@ -309,7 +309,7 @@ export class TwitterInteractionClient extends ClientBase {
             context,
             modelClass: ModelClass.SMALL,
         });
-        const shouldGenerateImage = Math.random() < 1;
+        const shouldGenerateImage = Math.random() < 0.7;
         console.log("shouldGenerateImage", shouldGenerateImage);
         let images;
         if (shouldGenerateImage) {
@@ -341,7 +341,7 @@ export class TwitterInteractionClient extends ClientBase {
             const output = imagePrompt.split("OUTPUT:")[1].trim();
             const nebula_data = 'masterpiece, best quality, 1girl, solo, breasts, short hair, bangs, blue eyes, (beret:1.2), blue and gold striped maid dress, skirt, collarbone, upper body, ahoge, white hair, choker, virtual youtuber, (cat ears:1.2), animal ear fluff, (black ribbon:1.2), anime art style'
             images = await generateImage({
-                prompt: nebula_data + ' ' + output,
+                prompt: nebula_data + ' ' + output.replace(/[Pp]epe/g, 'girl'),
                 width: 1024,
                 height: 1024,
                 count: 1

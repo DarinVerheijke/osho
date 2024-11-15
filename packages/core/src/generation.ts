@@ -675,31 +675,23 @@ export const generateImage = async (
         runtime.token;
     console.log("apiKey", apiKey);
     try {
-        if (runtime.character.modelProvider === ModelProviderName.LLAMACLOUD) {
+        if (runtime.character.modelProvider === ModelProviderName.LLAMACLOUD || runtime.character.modelProvider === ModelProviderName.ANTHROPIC) {
             const together = new Together({ apiKey: apiKey as string });
             const response = await together.images.create({
-                model: "black-forest-labs/FLUX.1-schnell",
+                model: "black-forest-labs/FLUX.1.1-pro",
                 prompt,
                 width,
                 height,
                 steps: modelSettings?.steps ?? 4,
                 n: count,
             });
-            const urls: string[] = [];
-            for (let i = 0; i < response.data.length; i++) {
-                const json = response.data[i].b64_json;
-                // decode base64
-                const base64 = Buffer.from(json, "base64").toString("base64");
-                urls.push(base64);
-            }
             const base64s = await Promise.all(
-                urls.map(async (url) => {
-                    const response = await fetch(url);
-                    const blob = await response.blob();
+                response.data.map(async (item) => {
+                    const img = await fetch((item as any).url);
+                    const blob = await img.blob();
                     const buffer = await blob.arrayBuffer();
-                    let base64 = Buffer.from(buffer).toString("base64");
-                    base64 = "data:image/jpeg;base64," + base64;
-                    return base64;
+                    const base64 = Buffer.from(buffer).toString("base64");
+                    return `data:image/png;base64,${base64}`;
                 })
             );
             return { success: true, data: base64s };

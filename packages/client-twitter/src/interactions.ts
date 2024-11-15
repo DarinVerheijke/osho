@@ -79,7 +79,7 @@ export class TwitterInteractionClient extends ClientBase {
             this.handleTwitterInteractions();
             setTimeout(
                 handleTwitterInteractionsLoop,
-                (Math.floor(Math.random() * (5 - 2 + 1)) + 2) * 60 * 1000
+                (Math.floor(Math.random() * (15 - 10 + 1)) + 10) * 60 * 1000
             ); // Random interval between 2-5 minutes
         };
         handleTwitterInteractionsLoop();
@@ -195,6 +195,7 @@ export class TwitterInteractionClient extends ClientBase {
         tweet: Tweet;
         message: Memory;
     }) {
+
         if (tweet.username === this.runtime.getSetting("TWITTER_USERNAME")) {
             console.log("skipping tweet from bot itself", tweet.id);
             // Skip processing if the tweet is from the bot itself
@@ -289,9 +290,10 @@ export class TwitterInteractionClient extends ClientBase {
             context: shouldRespondContext,
             modelClass: ModelClass.SMALL,
         });
-
-        if (!shouldRespond) {
-            console.log("Not responding to message");
+        // Add random chance to respond
+        const randomChanceToRespond = Math.random() < 0.5;
+        if (!shouldRespond || !randomChanceToRespond) {
+            console.log("Not responding to message (AI decision or random chance)");
             return { text: "", action: "IGNORE" };
         }
 
@@ -309,7 +311,7 @@ export class TwitterInteractionClient extends ClientBase {
             context,
             modelClass: ModelClass.SMALL,
         });
-        const shouldGenerateImage = Math.random() < 0.7;
+        const shouldGenerateImage = Math.random() < 0.1;
         console.log("shouldGenerateImage", shouldGenerateImage);
         let images;
         if (shouldGenerateImage) {
@@ -337,7 +339,6 @@ export class TwitterInteractionClient extends ClientBase {
                 `,
                 modelClass: ModelClass.MEDIUM,
             })
-            console.log("imagePrompt:", imagePrompt);
             const output = imagePrompt.split("OUTPUT:")[1].trim();
             const nebula_data = 'masterpiece, best quality, 1girl, solo, breasts, short hair, bangs, blue eyes, (beret:1.2), blue and gold striped maid dress, skirt, collarbone, upper body, ahoge, white hair, choker, virtual youtuber, (cat ears:1.2), animal ear fluff, (black ribbon:1.2), anime art style'
             images = await generateImage({

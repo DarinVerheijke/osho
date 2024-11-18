@@ -5,7 +5,7 @@ import { stringToUuid } from "@ai16z/eliza/src/uuid.ts";
 import { ClientBase } from "./base.ts";
 import { elizaLogger } from "@ai16z/eliza/src/logger.ts";
 
-const MAX_TWEET_LENGTH = 3000;
+const MAX_TWEET_LENGTH = 240;
 
 export const wait = (minTime: number = 1000, maxTime: number = 3000) => {
     const waitTime =

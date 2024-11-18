@@ -79,7 +79,7 @@ export class TwitterInteractionClient extends ClientBase {
             this.handleTwitterInteractions();
             setTimeout(
                 handleTwitterInteractionsLoop,
-                (Math.floor(Math.random() * (15 - 10 + 1)) + 10) * 60 * 1000
+                (Math.floor(Math.random() * (10 - 5 + 1)) + 2) * 60 * 1000
             ); // Random interval between 2-5 minutes
         };
         handleTwitterInteractionsLoop();
@@ -311,7 +311,7 @@ export class TwitterInteractionClient extends ClientBase {
             context,
             modelClass: ModelClass.SMALL,
         });
-        const shouldGenerateImage = Math.random() < 0.1;
+        const shouldGenerateImage = Math.random() < 0.2;
         console.log("shouldGenerateImage", shouldGenerateImage);
         let images;
         if (shouldGenerateImage) {

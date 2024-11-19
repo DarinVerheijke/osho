@@ -340,7 +340,7 @@ export class TwitterInteractionClient extends ClientBase {
                 modelClass: ModelClass.MEDIUM,
             })
             const output = imagePrompt.split("OUTPUT:")[1].trim();
-            const nebula_data = 'masterpiece, best quality, 1girl, solo, breasts, short hair, bangs, blue eyes, (beret:1.2), blue and gold striped maid dress, skirt, collarbone, upper body, ahoge, white hair, choker, virtual youtuber, (black ribbon:1.2), anime art style'
+            const nebula_data = 'masterpiece, best quality, 1girl, solo, breasts, short hair, bangs, blue eyes, (beret:1.2), blue and gold striped maid dress, skirt, collarbone, upper body, ahoge, white hair, choker, virtual youtuber, (black ribbon:1.2), anime art style, crypto currency $MOE'
             images = await generateImage({
                 prompt: nebula_data + ' ' + output.replace(/[Pp]epe/g, 'girl'),
                 width: 1024,

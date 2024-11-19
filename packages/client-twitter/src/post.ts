@@ -33,7 +33,7 @@ export class TwitterPostClient extends ClientBase {
             this.generateNewTweet();
             setTimeout(
                 generateNewTweetLoop,
-                Math.floor(Math.random() * (30 - 15 + 1) + 15) * 60 * 1000  // Random interval between 15-30 minutes
+                Math.floor(Math.random() * (15 - 10 + 1) + 10) * 60 * 1000  // Random interval between 15-30 minutes
             );
         };
         // setTimeout(() => {

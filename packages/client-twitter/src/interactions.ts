@@ -79,7 +79,7 @@ export class TwitterInteractionClient extends ClientBase {
             this.handleTwitterInteractions();
             setTimeout(
                 handleTwitterInteractionsLoop,
-                (Math.floor(Math.random() * (20 - 15 + 1)) + 15) * 60 * 1000
+                (Math.floor(Math.random() * (10 - 8 + 1)) + 8) * 60 * 1000
             ); // Random interval between 2-5 minutes
         };
         handleTwitterInteractionsLoop();

@@ -79,7 +79,7 @@ export class TwitterInteractionClient extends ClientBase {
             this.handleTwitterInteractions();
             setTimeout(
                 handleTwitterInteractionsLoop,
-                (Math.floor(Math.random() * (10 - 5 + 1)) + 2) * 60 * 1000
+                (Math.floor(Math.random() * (20 - 15 + 1)) + 15) * 60 * 1000
             ); // Random interval between 2-5 minutes
         };
         handleTwitterInteractionsLoop();
@@ -340,7 +340,7 @@ export class TwitterInteractionClient extends ClientBase {
                 modelClass: ModelClass.MEDIUM,
             })
             const output = imagePrompt.split("OUTPUT:")[1].trim();
-            const nebula_data = 'masterpiece, best quality, 1girl, solo, breasts, short hair, bangs, blue eyes, (beret:1.2), blue and gold striped maid dress, skirt, collarbone, upper body, ahoge, white hair, choker, virtual youtuber, (cat ears:1.2), animal ear fluff, (black ribbon:1.2), anime art style'
+            const nebula_data = 'masterpiece, best quality, 1girl, solo, breasts, short hair, bangs, blue eyes, (beret:1.2), blue and gold striped maid dress, skirt, collarbone, upper body, ahoge, white hair, choker, virtual youtuber, (black ribbon:1.2), anime art style'
             images = await generateImage({
                 prompt: nebula_data + ' ' + output.replace(/[Pp]epe/g, 'girl'),
                 width: 1024,

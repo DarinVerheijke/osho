@@ -149,7 +149,10 @@ export class TwitterInteractPeopleClient extends ClientBase {
 
     private async fetchUserTweets(username: string) {
         try {
-            const response = this.twitterClient.getTweets(username, 20);
+            let fetchTweetsAmountString = this.runtime.getSetting("TWITTER_FETCH_TWEETS_AMOUNT")
+            let fetchTweetsAmount = parseInt(fetchTweetsAmountString) || 5;
+
+            const response = this.twitterClient.getTweets(username, fetchTweetsAmount);
             if (response[Symbol.asyncIterator]) {
                 const tweets: any[] = [];
                 for await (const tweet of response) {

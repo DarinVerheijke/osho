@@ -83,7 +83,7 @@ export class TwitterSearchClient extends ClientBase {
             await new Promise((resolve) => setTimeout(resolve, 5000));
             const recentTweets = await this.fetchSearchTweets(
                 searchTerm,
-                20,
+                5,
                 SearchMode.Top
             );
             console.log("Search tweets fetched");

@@ -98,27 +98,32 @@ export class TwitterInteractionClient extends ClientBase {
             const tweetCandidates = (
                 await this.fetchSearchTweets(
                     `@${this.runtime.getSetting("TWITTER_USERNAME")}`,
-                    20,
+                    5,
                     SearchMode.Latest
                 )
             ).tweets;
 
             // de-duplicate tweetCandidates with a set
-            const uniqueTweetCandidates = [...new Set(tweetCandidates)];
+            let uniqueTweetCandidates = [...new Map(tweetCandidates.map((tweet) => [tweet.id, tweet])).values(),];
 
             // Sort tweet candidates by ID in ascending order
-            uniqueTweetCandidates
+            uniqueTweetCandidates = uniqueTweetCandidates
                 .sort((a, b) => a.id.localeCompare(b.id))
-                .filter((tweet) => tweet.userId !== this.twitterUserId);
+                .filter((tweet) => !tweet.retweetedStatus && tweet.userId !== this.twitterUserId);
 
             // for each tweet candidate, handle the tweet
             for (const tweet of uniqueTweetCandidates) {
-                if (
-                    !this.lastCheckedTweetId ||
-                    parseInt(tweet.id) > this.lastCheckedTweetId
+                if (!this.lastCheckedTweetId ||parseInt(tweet.id) > this.lastCheckedTweetId
                 ) {
-                    const conversationId =
-                        tweet.conversationId + "-" + this.runtime.agentId;
+
+                    // Check if this tweet has already been replied to
+                    if (await this.isTweetReplied(tweet.id)) {
+                        this.lastCheckedTweetId = parseInt(tweet.id);
+                        console.log(`Skipping already replied tweet: ${tweet.id}`);
+                        continue;
+                    }
+
+                    const conversationId = tweet.conversationId + "-" + this.runtime.agentId;
 
                     const roomId = stringToUuid(conversationId);
 
@@ -149,43 +154,41 @@ export class TwitterInteractionClient extends ClientBase {
                     // Update the last checked tweet ID after processing each tweet
                     this.lastCheckedTweetId = parseInt(tweet.id);
 
-                    try {
-                        if (this.lastCheckedTweetId) {
-                            fs.writeFileSync(
-                                this.tweetCacheFilePath,
-                                this.lastCheckedTweetId.toString(),
-                                "utf-8"
-                            );
-                        }
-                    } catch (error) {
-                        console.error(
-                            "Error saving latest checked tweet ID to file:",
-                            error
-                        );
-                    }
+                    this.SaveLastCheckedTweetID();
                 }
             }
 
-            // Save the latest checked tweet ID to the file
-            try {
-                if (this.lastCheckedTweetId) {
-                    fs.writeFileSync(
-                        this.tweetCacheFilePath,
-                        this.lastCheckedTweetId.toString(),
-                        "utf-8"
-                    );
-                }
-            } catch (error) {
-                console.error(
-                    "Error saving latest checked tweet ID to file:",
-                    error
-                );
-            }
+            this.SaveLastCheckedTweetID();
 
             console.log("Finished checking Twitter interactions");
         } catch (error) {
             console.error("Error handling Twitter interactions:", error);
         }
+    }
+
+    private SaveLastCheckedTweetID() {
+        // Save the latest checked tweet ID to the file
+        try {
+            if (this.lastCheckedTweetId) {
+                fs.writeFileSync(
+                    this.tweetCacheFilePath,
+                    this.lastCheckedTweetId.toString(),
+                    "utf-8",
+                );
+            }
+        } catch (error) {
+            console.error(
+                "Error saving latest checked tweet ID to file:",
+                error,
+            );
+        }
+    }
+
+    private async isTweetReplied(tweetId: string): Promise<boolean> {
+        const existingMemory = await this.runtime.messageManager.getMemoryById(
+            stringToUuid(tweetId + "-" + this.runtime.agentId)
+        );
+        return !!existingMemory;
     }
 
     private async handleTweet({
@@ -206,6 +209,12 @@ export class TwitterInteractionClient extends ClientBase {
             console.log("skipping tweet with no text", tweet.id);
             return { text: "", action: "IGNORE" };
         }
+
+        if (tweet.retweetedStatus) {
+            console.log("Skipping retweet", tweet.id);
+            return { text: "", action: "IGNORE" };
+        }
+
         console.log("handling tweet", tweet.id);
         const formatTweet = (tweet: Tweet) => {
             return `  ID: ${tweet.id}

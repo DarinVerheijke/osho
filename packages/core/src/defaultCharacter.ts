@@ -102,7 +102,8 @@ export const defaultCharacter: Character = {
             },
         ]
     ],
-    people: [],
+    people: ["govanisher", "frank_degodss", "yuyue_chris", "mycelialoracle", "immanencer", "vec0zy", "dolos_diary", "truth_terminal", "gospelofgoatse", "tee_hee_hee", "himgajria", "blknoiz6"],
+
     postExamples: [
         "gm nebulish gang ✨ charts looking extra starry today",
         "wen you see that perfect entry but mercury retrograde says nah",

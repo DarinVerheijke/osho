@@ -94,7 +94,7 @@ export class ImageDescriptionService extends Service {
         device?: string,
         runtime?: IAgentRuntime
     ): Promise<{ title: string; description: string }> {
-        this.initialize(device, runtime);
+        await this.initialize(device, runtime);
 
         if (this.device === "cloud") {
             return this.recognizeWithOpenAI(imageUrl, runtime);

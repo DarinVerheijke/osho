@@ -1,15 +1,21 @@
+import { settings } from '@ai16z/eliza/src/settings.ts';
 import { TwitterPostClient } from "./post.ts";
 import { TwitterSearchClient } from "./search.ts";
 import { TwitterInteractionClient } from "./interactions.ts";
 import { IAgentRuntime, Client } from "@ai16z/eliza/src/types.ts";
+import { TwitterInteractPeopleClient } from './interactPeople.ts';
 
 class TwitterAllClient {
     post: TwitterPostClient;
     search: TwitterSearchClient;
     interaction: TwitterInteractionClient;
+    iteractPeople: TwitterInteractPeopleClient;
     constructor(runtime: IAgentRuntime) {
-        this.post = new TwitterPostClient(runtime);
-        // this.search = new TwitterSearchClient(runtime); // don't start the search client by default
+        if (settings.TWITTER_POST_DISABLE !== 'true') {
+            this.post = new TwitterPostClient(runtime);
+            this.iteractPeople = new TwitterInteractPeopleClient(runtime);
+        }
+        this.search = new TwitterSearchClient(runtime); // don't start the search client by default
         // this searches topics from character file, but kind of violates consent of random users
         // burns your rate limit and can get your account banned
         // use at your own risk

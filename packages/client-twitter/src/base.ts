@@ -120,7 +120,7 @@ export class ClientBase extends EventEmitter {
         const cacheFile = path.join(
             __dirname,
             "tweetcache",
-            "*",
+            tweetId,
             `${tweetId}.json`
         );
         const files = await glob(cacheFile);
@@ -473,7 +473,7 @@ export class ClientBase extends EventEmitter {
         // Get the most recent 20 mentions and interactions
         const mentionsAndInteractions = await this.fetchSearchTweets(
             `@${this.runtime.getSetting("TWITTER_USERNAME")}`,
-            20,
+            5,
             SearchMode.Latest
         );
 

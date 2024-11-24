@@ -213,6 +213,8 @@ export const defaultCharacter: Character = {
 		"Stylish"
     ],
     topics: [
+		"memes",
+		"applicable code hints",
 		"anime",
 		"cute tech gadgets",
 		"matcha lattes",

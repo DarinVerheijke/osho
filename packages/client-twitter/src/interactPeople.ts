@@ -204,14 +204,6 @@ export class TwitterInteractPeopleClient extends ClientBase {
             tweetBackground = `Retweeting @${originalTweet.username}: ${originalTweet.text}`;
         }
 
-        if(!this.runtime)
-        {
-            console.warn("RUNTIME WAS NULL EVEN BEFORE");
-        }
-        else {
-            console.warn("RUNTIME IS PROPERLY DEFINED");
-        }
-
         // Generate image descriptions using GPT-4 vision API
         const imageDescriptions = [];
         for (const photo of selectedTweet.photos) {
@@ -219,7 +211,7 @@ export class TwitterInteractPeopleClient extends ClientBase {
                 const description = await this.runtime
                     .getService(ServiceType.IMAGE_DESCRIPTION)
                     .getInstance<IImageDescriptionService>()
-                    .describeImage(photo.url, this.runtime);
+                    .describeImage(photo.url);
                 imageDescriptions.push(description);
             } catch (error) {
                 console.error(`Error describing image at ${photo.url}:`, error);

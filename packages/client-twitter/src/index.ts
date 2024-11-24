@@ -9,11 +9,11 @@ class TwitterAllClient {
     post: TwitterPostClient;
     search: TwitterSearchClient;
     interaction: TwitterInteractionClient;
-    iteractPeople: TwitterInteractPeopleClient;
+    interactPeople: TwitterInteractPeopleClient;
     constructor(runtime: IAgentRuntime) {
         if (settings.TWITTER_POST_DISABLE !== 'true') {
             this.post = new TwitterPostClient(runtime);
-            this.iteractPeople = new TwitterInteractPeopleClient(runtime);
+            this.interactPeople = new TwitterInteractPeopleClient(runtime);
         }
         this.search = new TwitterSearchClient(runtime); // don't start the search client by default
         // this searches topics from character file, but kind of violates consent of random users

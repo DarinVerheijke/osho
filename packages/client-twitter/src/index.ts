@@ -13,8 +13,12 @@ class TwitterAllClient {
     constructor(runtime: IAgentRuntime) {
         if (settings.TWITTER_POST_DISABLE !== 'true') {
             this.post = new TwitterPostClient(runtime);
+        }
+
+        if (settings.TWITTER_RESPOND_DISABLE !== 'true') {
             this.interactPeople = new TwitterInteractPeopleClient(runtime);
         }
+
         this.search = new TwitterSearchClient(runtime); // don't start the search client by default
         // this searches topics from character file, but kind of violates consent of random users
         // burns your rate limit and can get your account banned

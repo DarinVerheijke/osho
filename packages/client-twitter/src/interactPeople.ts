@@ -6,6 +6,7 @@ import { wait, sendTweet, buildConversationThread } from "./utils.ts"; // Adjust
 import { generateMessageResponse, generateText } from "@ai16z/eliza/src/generation.ts";
 import { ClientBase } from "./base.ts";
 import { messageCompletionFooter } from "@ai16z/eliza/src/parsing.ts";
+import { settings } from "@ai16z/eliza";
 
 const twitterSearchTemplate =
     `{{timeline}}
@@ -94,6 +95,13 @@ export class TwitterInteractPeopleClient extends ClientBase {
                     console.log(`No tweets found for user: ${username}`);
                     continue; // Skip to the next user if no tweets are found
                 }
+
+                let respondMinDelaySecondsString = this.runtime.getSetting("TWITTER_RESPOND_MIN_DELAY_SECONDS");
+                let respondMaxDelaySecondsString = this.runtime.getSetting("TWITTER_RESPOND_MAX_DELAY_SECONDS");
+
+                let respondMinDelaySeconds = parseInt(respondMinDelaySecondsString) || 1000;
+                let respondMaxDelaySeconds = parseInt(respondMaxDelaySecondsString) || 2000;
+
                 for (const tweet of recentTweets) {
 
                     let hasAlreadyResponded = await this.hasRespondedToTweet(tweet.id);
@@ -107,9 +115,9 @@ export class TwitterInteractPeopleClient extends ClientBase {
                     await this.cacheTweet(tweet);
                     this.respondedTweets.add(tweet.id); // Mark as processed
 
-                    // Set a random interval between 5 to 10 minutes
-                    const randomInterval = Math.floor(Math.random() * (10 - 5 + 1) + 5) * 60 * 1000;
-                    this.checkInterval = setTimeout(() => this.checkForNewTweetsLoop(), randomInterval);
+                    const randomInterval = this.getRandomInterval(respondMinDelaySeconds, respondMaxDelaySeconds);
+                    console.log(`Waiting for ${randomInterval / 1000} seconds before processing the next tweet.`);
+                    await this.delay(randomInterval); // Delay before processing the next tweet
                 }
                 // Save recent tweets to cache
                 fs.writeFileSync("tweetcache/home_timeline.json", JSON.stringify(recentTweets, null, 2));

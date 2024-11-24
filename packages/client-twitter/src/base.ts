@@ -147,6 +147,16 @@ export class ClientBase extends EventEmitter {
         return tweet;
     }
 
+    getRandomInterval(minSeconds: number, maxSeconds: number): number {
+        const minMilliseconds = minSeconds * 1000;
+        const maxMilliseconds = maxSeconds * 1000;
+        return Math.floor(Math.random() * (maxMilliseconds - minMilliseconds + 1) + minMilliseconds);
+    }
+
+    delay(milliseconds: number) {
+        return new Promise(resolve => setTimeout(resolve, milliseconds));
+    }
+
     callback: (self: ClientBase) => any = null;
 
     onReady() {

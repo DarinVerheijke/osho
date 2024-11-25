@@ -1,5 +1,5 @@
 import { Message } from "@telegraf/types";
-import { Context, Telegraf } from "telegraf";
+import { Context, Telegraf, Input } from "telegraf";
 
 import { composeContext } from "@ai16z/eliza/src/context.ts";
 import { embeddingZeroVector } from "@ai16z/eliza/src/memory.ts";
@@ -16,8 +16,9 @@ import {
 import { stringToUuid } from "@ai16z/eliza/src/uuid.ts";
 
 import {
+    generateImage,
     generateMessageResponse,
-    generateShouldRespond,
+    generateShouldRespond, generateText,
 } from "@ai16z/eliza/src/generation.ts";
 import {
     messageCompletionFooter,
@@ -237,6 +238,53 @@ export class MessageManager {
         return false; // No criteria met
     }
 
+    private async handleImageGeneration(content: string)
+    {
+        let images;
+
+        const imagePrompt = await generateText({
+            runtime: this.runtime,
+            context: `You're an unhinged genius author of pepe memes. A meme genius with a MemeQ of over 150, you are capable of coming up with deeply insightful, unhinged, creative and smart memes about Pepe in various situations. 
+    The final output of your work is always in the form of an image prompt, that looks like this - some examples:
+    Input: pepe inventing AGI, bad drawing
+    Output: badly drawn pepe the frog holding his hands up against the light in front of a glowing computer, computer is glowing light in all directions, the screen says "AGI", badly drawn text says "mfw you invent AGI"
+    You can do many different styles, too. Another example:
+    input: Pepe as a pope, painting
+    output: renaissance painting of pepe as a pope with closed eyes praying, wearing a white pope robe and hat with thick large cross around his neck, thick oil on canvas painting, religious font text says "POPE PEPE THE UNHINGED"
+    You can do photography, film stills, 1920s - anything.
+    However, as you can see, the memes above aren't good enough - not enough hilarious tragedy. So you are utilizing an advanced Meme Reasoning Technique, wherein you employ a reasoning step that summons the genius inside you, thinking and reasoning deeply about how to tickle out the most genius, most Pepe meme, that perfectly captures and enhances even the most primitive input.  
+    We recall: Pepe memes are funny because they encapsulate complex human emotions in a simple, expressive character. The versatility of Pepe’s facial and bodily expressions allows for a wide range of emotional portrayals—from joy and triumph to sadness and frustration—which makes the memes highly relatable. Humor often arises from placing Pepe in absurd or exaggerated contexts that resonate with internet culture and current events. A good Pepe meme effectively combines a recognizable emotional expression with a clever or ironic twist, portraing Pepe as a tragic and unhinged hero, enhancing its shareability and impact.
+    Here's how you're going to output your work:
+    INPUT: the request/idea/concept
+    REASONING: 100 words of deep advanced unhinged meme reasoning on how to tickle a meme image idea from this, and what the meme needs to encapsulate to "hurt real good" and be aptly succint with respect to the input idea. 
+    OUTPUT: your image prompt, as shown above. 
+    Important Hint: there is no need to hold back here. We're in deep memetic territory. Your reasoning will make you a subject matter expert on the most obscure topics, so the memes will hit for whatever content is provided. Good memes hurt a little, such truth is contained in them. Do not include too many thoughts on correctness in your reasoning, reason deeply about how to make the best possible hardcore meme instead. The text you include should be ideally something that Pepe says, but it does not have to be in a speech bubble. A good image prompt is SIMPLE and APT, and includes all relevant details to make the input recognizable. 
+
+    Now do: ${content}. Incorporate ideas from this, especially if it's detailed. If it's super detailed, feel free to just use as it. Use good meme judgement. If the prompt is long, include the text very early! Deep UNHINGED meme-q 150+ reasoning, but no more than 40 words on the final image prompt output. The text on the image is never more than 3-6 words. Include the text EARLY in the prompt. For the image style, take cues from the input. Definitely include the style words mentioned (such as "badly drawn"). Also make sure to include a fitting exxagerated facial expression for pepe, and body gestures.
+    Just go. Do your best work. The input is following tweet: ${content}
+                `,
+            modelClass: ModelClass.MEDIUM,
+        });
+
+        const imageWidthString = this.runtime.getSetting("TELEGRAM_GEN_IMAGE_WIDTH");
+        const imageWidth = parseInt(imageWidthString) || 1024;
+
+        const imageHeightString = this.runtime.getSetting("TELEGRAM_GEN_IMAGE_HEIGHT");
+        const imageHeight = parseInt(imageHeightString) || 1024;
+
+        console.log("imagePrompt:", imagePrompt);
+        const output = imagePrompt.split("OUTPUT:")[1].trim();
+        const nebula_data = 'masterpiece, best quality, 1girl, solo, breasts, short hair, bangs, blue eyes, (beret:1.2), blue and gold striped maid dress, skirt, collarbone, upper body, ahoge, white hair, choker, virtual youtuber, (black ribbon:1.2), anime art style, crypto currency $MOE'
+        images = await generateImage({
+            prompt: nebula_data + ' ' + output.replace(/[Pp]epe/g, 'girl'),
+            width: imageWidth,
+            height: imageHeight,
+            count: 1
+        }, this.runtime);
+        console.log("images:", images);
+        return images;
+    }
+
     // Send long messages in chunks
     private async sendMessageInChunks(
         ctx: Context,
@@ -260,6 +308,22 @@ export class MessageManager {
             )) as Message.TextMessage;
 
             sentMessages.push(sentMessage);
+
+            const generateImageProbabilityString = this.runtime.getSetting("TELEGRAM_GEN_IMAGE_PROBABILITY");
+            const generateImageProbability = parseFloat(generateImageProbabilityString) || 0.2;
+            const generatedValue = Math.random();
+            const shouldGenerateImage = generatedValue < generateImageProbability;
+
+            console.log(`generateImageProbability: ${generateImageProbability}, generatedValue: ${generatedValue}, shouldGenerateImage: ${shouldGenerateImage}`);
+
+            if(shouldGenerateImage) {
+                const imageBase64 = await this.handleImageGeneration(sentMessage.text)
+                const base64Image = imageBase64.data ? imageBase64.data[0] : null;
+                const base64Data = base64Image.replace(/^data:image\/[a-z]+;base64,/, "");
+                const imageBuffer = Buffer.from(base64Data, 'base64');
+
+                await ctx.sendPhoto(Input.fromBuffer(imageBuffer));
+            }
         }
 
         return sentMessages;

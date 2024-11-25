@@ -9,7 +9,7 @@ import {
     IAgentRuntime,
     IImageDescriptionService,
     Memory,
-    ModelClass,
+    ModelClass, ServiceType,
     State,
     UUID,
 } from "@ai16z/eliza/src/types.ts";
@@ -133,12 +133,10 @@ Note that {{agentName}} is capable of reading/seeing/hearing various forms of me
 export class MessageManager {
     public bot: Telegraf<Context>;
     private runtime: IAgentRuntime;
-    private imageService: IImageDescriptionService;
 
     constructor(bot: Telegraf<Context>, runtime: IAgentRuntime) {
         this.bot = bot;
         this.runtime = runtime;
-        this.imageService = ImageDescriptionService.getInstance();
     }
 
     // Process image messages and generate descriptions
@@ -174,9 +172,10 @@ export class MessageManager {
             }
 
             if (imageUrl) {
-                const { title, description } = await this.imageService
-                    .getInstance()
-                    .describeImage(imageUrl);
+                const { title, description } = await this.runtime
+                    .getService(ServiceType.IMAGE_DESCRIPTION)
+                    .getInstance<IImageDescriptionService>()
+                    .describeImage(imageUrl, undefined, this.runtime);
                 const fullDescription = `[Image: ${title}\n${description}]`;
                 return { description: fullDescription };
             }
@@ -192,31 +191,32 @@ export class MessageManager {
         message: Message,
         state: State
     ): Promise<boolean> {
-        // Respond if bot is mentioned
 
+        // Dont respond to private chats
+        if (message.chat.type === "private") {
+            console.log("WON'T respond because it's a private chat");
+            return false;
+        }
+
+        // Respond if bot is mentioned
         if (
             "text" in message &&
             message.text?.includes(`@${this.bot.botInfo?.username}`)
         ) {
-            return true;
-        }
 
-        // Respond to private chats
-        if (message.chat.type === "private") {
+            console.log("Will respond because mentioned");
             return true;
         }
 
         // Respond to images in group chats
-        if (
-            "photo" in message ||
-            ("document" in message &&
-                message.document?.mime_type?.startsWith("image/"))
-        ) {
-            return false;
+        if ("photo" in message || ("document" in message && message.document?.mime_type?.startsWith("image/"))) {
+            console.log("Will respond because message contains an image");
+            return true;
         }
+        const respondAiCheckEnabledString = this.runtime.getSetting("TELEGRAM_RESPOND_AI_CHECK_ENABLED")
 
         // Use AI to decide for text or captions
-        if ("text" in message || ("caption" in message && message.caption)) {
+        if (respondAiCheckEnabledString === 'true' && ("text" in message || ("caption" in message && message.caption))) {
             const shouldRespondContext = composeContext({
                 state,
                 template:
@@ -232,9 +232,19 @@ export class MessageManager {
                 modelClass: ModelClass.SMALL,
             });
 
-            return response === "RESPOND";
+            const willRespond = response === "RESPOND";
+
+            if(willRespond){
+                console.log("Will respond because AI decided so");
+            }
+            else {
+                console.log("WON'T respond because AI decided so");
+            }
+
+            return willRespond;
         }
 
+        console.log("WON'T respond because none criteria were met");
         return false; // No criteria met
     }
 

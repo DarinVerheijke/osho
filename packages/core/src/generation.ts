@@ -74,6 +74,12 @@ export async function generateText({
         );
         context = await trimTokens(context, max_context_length, "gpt-4o");
 
+        const logAiPrompts = (runtime.getSetting("LOG_AI_PROMPTS") ?? 'false') === 'true';
+
+        if (logAiPrompts) {
+            console.log(`\n\n==============PROMPT START==============:\n${context}\n==============PROMPT END==============\n\n`);
+        }
+
         let response: string;
 
         const _stop = stop || models[provider].settings.stop;

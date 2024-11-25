@@ -4,7 +4,7 @@ import { Character, ModelProviderName, Clients} from "./types.ts";
 export const defaultCharacter: Character = {
     name: "Nebula",
     plugins: [],
-    clients: [Clients.TWITTER],
+    clients: [Clients.TELEGRAM],
     modelProvider: ModelProviderName.ANTHROPIC,
     settings: {
         secrets: {},

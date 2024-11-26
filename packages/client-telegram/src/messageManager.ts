@@ -192,6 +192,20 @@ export class MessageManager {
         state: State
     ): Promise<boolean> {
 
+        const botUsername = this.runtime.getSetting("TELEGRAM_BOT_USERNAME")
+
+        const isRepliedTo =
+            "reply_to_message" in message &&
+            message.reply_to_message &&
+            message.reply_to_message.from &&
+            message.reply_to_message.from.username === botUsername;
+
+        if(isRepliedTo)
+        {
+            console.log("Will respond because was replied to");
+            return true;
+        }
+
         // Dont respond to private chats
         if (message.chat.type === "private") {
             console.log("WON'T respond because it's a private chat");

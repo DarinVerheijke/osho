@@ -12,16 +12,22 @@
         "lint": "pnpm --dir packages/core lint && pnpm --dir packages/agent lint",
         "prettier-check": "npx prettier --check .",
         "prettier": "npx prettier --write .",
-        "clean": "bash ./scripts/clean.sh"
+        "clean": "bash ./scripts/clean.sh",
+        "docker:build": "bash ./scripts/docker.sh build",
+        "docker:run": "bash ./scripts/docker.sh run",
+        "docker:bash": "bash ./scripts/docker.sh bash",
+        "docker:start": "bash ./scripts/docker.sh start",
+        "docker": "pnpm docker:build && pnpm docker:run && pnpm docker:bash"
     },
     "devDependencies": {
-        "@types/node": "22.8.4",
+        "@types/node": "^22.8.4",
         "concurrently": "^9.1.0",
         "husky": "^9.1.6",
         "lerna": "^8.1.5",
         "only-allow": "^1.2.1",
         "prettier": "^3.3.3",
         "ts-node": "10.9.2",
+        "tsup": "^8.3.5",
         "typedoc": "^0.26.11",
         "typescript": "5.6.3"
     },
@@ -34,6 +40,7 @@
         "node": ">=23"
     },
     "dependencies": {
+        "axios": "^1.7.7",
         "ollama-ai-provider": "^0.16.1",
         "optional": "^0.1.4",
         "sharp": "^0.33.5"

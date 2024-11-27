@@ -5,6 +5,7 @@ import { generateText } from "@ai16z/eliza/src/generation.ts";
 import { embeddingZeroVector } from "@ai16z/eliza/src/memory.ts";
 import { IAgentRuntime, ModelClass } from "@ai16z/eliza/src/types.ts";
 import { stringToUuid } from "@ai16z/eliza/src/uuid.ts";
+import { characterJsonManager } from "@ai16z/eliza/src/characterJsonManager.ts";
 import { ClientBase } from "./base.ts";
 import { generateCaption, generateImage } from "@ai16z/eliza/src/generation.ts";
 const twitterPostTemplate = `{{timeline}}
@@ -154,6 +155,12 @@ export class TwitterPostClient extends ClientBase {
                     })
                     .join("\n");
 
+            const rudeCharacter = await characterJsonManager.getRudeCharacter(this.runtime.character);
+            const originalCharacter = this.runtime.character;
+            this.runtime.character = rudeCharacter;
+
+            console.log("REPLY MODIFIED CHARACTER: ", this.runtime.character);
+
             const state = await this.runtime.composeState(
                 {
                     userId: this.runtime.agentId,
@@ -167,6 +174,10 @@ export class TwitterPostClient extends ClientBase {
                     timeline: formattedHomeTimeline,
                 }
             );
+
+            this.runtime.character = originalCharacter;
+            console.log("REPLY ORIGINAL CHARACTER: ", this.runtime.character);
+
             // Generate new tweet
             const context = composeContext({
                 state,

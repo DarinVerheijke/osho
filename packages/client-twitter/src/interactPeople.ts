@@ -6,7 +6,7 @@ import { wait, sendTweet, buildConversationThread } from "./utils.ts"; // Adjust
 import { generateImage, generateMessageResponse, generateText } from "@ai16z/eliza/src/generation.ts";
 import { ClientBase } from "./base.ts";
 import { messageCompletionFooter } from "@ai16z/eliza/src/parsing.ts";
-import { settings } from "@ai16z/eliza";
+import { characterJsonManager } from "@ai16z/eliza/src/characterJsonManager.ts";
 
 const twitterSearchTemplate =
     `{{timeline}}
@@ -345,6 +345,12 @@ export class TwitterInteractPeopleClient extends ClientBase {
             return { text: "", action: "IGNORE" };
         }
 
+        const cuteCharacter = await characterJsonManager.getCuteCharacter(this.runtime.character);
+        const originalCharacter = this.runtime.character;
+        this.runtime.character = cuteCharacter;
+
+        console.log("REPLY MODIFIED CHARACTER: ", this.runtime.character);
+
         let state = await this.runtime.composeState(message, {
             twitterClient: this.twitterClient,
             twitterUserName: this.runtime.getSetting("TWITTER_USERNAME"),
@@ -358,6 +364,9 @@ export class TwitterInteractPeopleClient extends ClientBase {
             ${selectedTweet.urls.length > 0 ? `URLs: ${selectedTweet.urls.join(", ")}\n` : ""}${imageDescriptions.length > 0 ? `\nImages in Post (Described): ${imageDescriptions.join(", ")}\n` : ""}
             `,
         });
+
+        this.runtime.character = originalCharacter;
+        console.log("REPLY ORIGINAL CHARACTER: ", this.runtime.character);
 
         await this.saveRequestMessage(message, state as State);
 

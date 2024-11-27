@@ -55,22 +55,64 @@ export class TwitterPostClient extends ClientBase {
         const decideIfShouldGenerateImagePrompt = await generateText({
             runtime: this.runtime,
             context: `
-                    You are managing a popular Twitter account. Based on the provided context, decide whether to attach an image to your tweet. In the OUTPUT section, only "true" or "false" are allowed as possible values. Examples:
+                You are an AI assistant that helps determine whether to include an image in Twitter posts. 
+                You will receive your planned post text as an input.
+                Your task is to determine if adding an image would enhance the post's effectiveness and engagement. 
+                
+                Output ONLY "true" or "false" based on these guidelines:
+                
+                Return true if:
+                - The post references visual content (e.g., "Here's what it looks like", "Check this out", "As shown here")
+                - The post would benefit from data visualization (e.g., when discussing statistics, trends, or comparisons)
+                - The post explains something that would be clearer with a diagram or illustration
+                - The post suggests modifications to an image in the original tweet
+                - The post expresses emotions that could be reinforced with a reaction image or selfie (e.g., excitement, surprise, confusion)
+                - The situation calls for a meme that would enhance humor or relatability
+                - The post describes a personal action or state that could be visualized (e.g., "Working from the beach today", "Just finished this project")
+                - The content could become a memorable or shareable moment
+                - The post would have more impact with visual emphasis (e.g., celebrating achievements, showing support)
+                
+                Return false if:
+                - The post is purely conversational or text-based
+                - The post is answering a non-visual question
+                - The post contains sensitive or controversial content
+                - The post is expressing an opinion or emotion that doesn't require visual support
+                - The post is providing factual information that's better conveyed through text
+                - The meme or reaction image might be inappropriate for the post's tone
+                - The visual content would distract from a serious discussion
+                
+                Examples:
+                
+                Post Text: "Here's a step-by-step guide to tying a bowline knot. First you make a loop..."
+                Decision: true (visual instruction would be helpful)
 
-                    INPUT: Hey everyone! Today I would like to share some pictures of my favourite animals!
-                    OUTPUT: true
+                Post Text: "The policy seems well-intentioned but might have unintended consequences..."
+                Decision: false (opinion-based discussion)
+                
+                Post Text: "Here's the quarterly breakdown showing a 15% increase..."
+                Decision: true (data visualization would enhance understanding)
+                
+                Post Text: "You're welcome! Glad I could assist."
+                Decision: false (purely conversational)
+
+                Post Text: "Me trying to debug my code at 3am..."
+                Decision: true (perfect opportunity for a relatable meme)
+                
+                Post Text: "So proud! Just finished my run too, feeling amazing!"
+                Decision: true (sharing a post-run selfie would enhance the celebration)
+
+                Post Text: "Living my best life with three fans pointed at my desk right now"
+                Decision: true (humorous situation perfect for a selfie or reaction image)
+                
+                Post Text: "The critics watching that finale like..."
+                Decision: true (reaction meme would enhance the critique)
                     
-                    INPUT: I've just woke up, how is everyone doing?
-                    OUTPUT: false
+                Now make a Decision based on the following data:
+
+                This is the planned tweet:
+                ${content}
                     
-                    INPUT: I bought some new plushies for my room to make it even more kawaii!
-                    OUTPUT: true
-                    
-                    INPUT: Not in the mood when it's raining
-                    OUTPUT: false
-                    
-                    Now determine the OUTPUT value for the following input:
-                    ${content}
+                You are only allowed to reply 'true' or 'false'.
                 `,
             modelClass: ModelClass.MEDIUM,
         });

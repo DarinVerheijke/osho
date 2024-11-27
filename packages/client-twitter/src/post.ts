@@ -41,11 +41,41 @@ export class TwitterPostClient extends ClientBase {
         // }, 5 * 60 * 1000); // Wait 5 minutes before starting the loop
     }
 
+    currentPostIndex : number = 0;
+
     constructor(runtime: IAgentRuntime) {
         // Initialize the client and pass an optional callback to be called when the client is ready
         super({
             runtime,
         });
+    }
+
+    private async DecideIfShouldGenerateImage(content: string){
+
+        const decideIfShouldGenerateImagePrompt = await generateText({
+            runtime: this.runtime,
+            context: `
+                    You are managing a popular Twitter account. Based on the provided context, decide whether to attach an image to your tweet. In the OUTPUT section, only "true" or "false" are allowed as possible values. Examples:
+
+                    INPUT: Hey everyone! Today I would like to share some pictures of my favourite animals!
+                    OUTPUT: true
+                    
+                    INPUT: I've just woke up, how is everyone doing?
+                    OUTPUT: false
+                    
+                    INPUT: I bought some new plushies for my room to make it even more kawaii!
+                    OUTPUT: true
+                    
+                    INPUT: Not in the mood when it's raining
+                    OUTPUT: false
+                    
+                    Now determine the OUTPUT value for the following input:
+                    ${content}
+                `,
+            modelClass: ModelClass.MEDIUM,
+        });
+
+        return decideIfShouldGenerateImagePrompt;
     }
 
     private async generateNewTweet() {
@@ -129,7 +159,25 @@ export class TwitterPostClient extends ClientBase {
                 content = content.slice(0, content.lastIndexOf("."));
             }
             */
-            const shouldGenerateImage = Math.random() < 0.6;
+
+            this.currentPostIndex++;
+            const aiDecidesEveryXPostsString = this.runtime.getSetting("TWITTER_AI_DECIDES_IMAGE_GEN_EVERY_X_MESSAGES_POSTS");
+            const aiDecidesEveryXPosts = parseInt(aiDecidesEveryXPostsString) || 2;
+            const canAIDecide = this.currentPostIndex % aiDecidesEveryXPosts === 0;
+
+            let shouldGenerateImage = false;
+
+            console.log("currentPostIndex: ", this.currentPostIndex);
+            console.log("aiDecidesEveryXPostsString: ", aiDecidesEveryXPostsString);
+            console.log("canAIDecide to generate image?: ", canAIDecide);
+
+            if(canAIDecide)
+            {
+                shouldGenerateImage = await this.DecideIfShouldGenerateImage(newTweetContent) === 'true';
+            }
+
+            console.log("shouldGenerateImage: ", shouldGenerateImage);
+
             let images;
             if (shouldGenerateImage) {
                 const imagePrompt = await generateText({
@@ -155,7 +203,7 @@ export class TwitterPostClient extends ClientBase {
                 `,
                 modelClass: ModelClass.MEDIUM,
             });
-            console.log("imagePrompt:", imagePrompt);
+
             const output = imagePrompt.split("OUTPUT:")[1].trim();
             const nebula_data = 'masterpiece, best quality, 1girl, solo, breasts, short hair, bangs, blue eyes, (beret:1.2), blue and gold striped maid dress, skirt, collarbone, upper body, ahoge, white hair, choker, virtual youtuber, (black ribbon:1.2), anime art style, crypto currency $MOE'
             images = await generateImage({

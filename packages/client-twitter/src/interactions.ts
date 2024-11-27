@@ -91,6 +91,8 @@ export class TwitterInteractionClient extends ClientBase {
         });
     }
 
+    currentResponseIndex : number = 0;
+
     async handleTwitterInteractions() {
         console.log("Checking Twitter interactions");
         try {
@@ -189,6 +191,34 @@ export class TwitterInteractionClient extends ClientBase {
             stringToUuid(tweetId + "-" + this.runtime.agentId)
         );
         return !!existingMemory;
+    }
+
+    private async DecideIfShouldGenerateImage(content: string){
+
+        const decideIfShouldGenerateImagePrompt = await generateText({
+            runtime: this.runtime,
+            context: `
+                    You are managing a popular Twitter account. Based on the provided context, determine whether you want to attach an image to your reply to one of the user's tweets. In the OUTPUT section, you are allowed to use only "true" or "false" as possible values. Examples:
+                    
+                    USER'S TWEET: I'd love to see your guys picture from graduation ceremony
+                    OUTPUT: true
+                    
+                    USER'S TWEET: Have you ever seen a dog barking on an elephant?
+                    OUTPUT: false
+                    
+                    INPUT: Are there any artists around? Show me your works!
+                    OUTPUT: true
+                    
+                    INPUT: Not in the mood when it's raining
+                    OUTPUT: false
+                    
+                    Now determine the OUTPUT value for the following input:
+                    ${content}
+                `,
+            modelClass: ModelClass.MEDIUM,
+        });
+
+        return decideIfShouldGenerateImagePrompt;
     }
 
     private async handleTweet({
@@ -320,8 +350,26 @@ export class TwitterInteractionClient extends ClientBase {
             context,
             modelClass: ModelClass.SMALL,
         });
-        const shouldGenerateImage = Math.random() < 0.2;
-        console.log("shouldGenerateImage", shouldGenerateImage);
+
+        this.currentResponseIndex++;
+        const aiDecidesEveryXPostsString = this.runtime.getSetting("TWITTER_AI_DECIDES_IMAGE_GEN_EVERY_X_MESSAGES_RESPONSES");
+        const aiDecidesEveryXPosts = parseInt(aiDecidesEveryXPostsString) || 4;
+        const canAIDecide = this.currentResponseIndex % aiDecidesEveryXPosts === 0;
+
+        console.log("context: ", context);
+        console.log("currentPost: ", currentPost);
+        console.log("this.currentResponseIndex: ", this.currentResponseIndex);
+        console.log("aiDecidesEveryXPostsString: ", aiDecidesEveryXPostsString);
+        console.log("canAIDecide to generate image?: ", canAIDecide);
+
+        let shouldGenerateImage = false;
+
+        if(canAIDecide) {
+            shouldGenerateImage = await this.DecideIfShouldGenerateImage(currentPost) === 'true';
+        }
+
+        console.log("shouldGenerateImage: ", shouldGenerateImage);
+
         let images;
         if (shouldGenerateImage) {
             console.log("generating image");

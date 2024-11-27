@@ -1,6 +1,7 @@
 import { IAgentRuntime, Content, HandlerCallback, State, ModelClass, ServiceType, IImageDescriptionService } from "@ai16z/eliza/src/types.ts";
 import { stringToUuid } from "@ai16z/eliza/src/uuid.ts";
 import fs from "fs";
+import { characterJsonManager } from "@ai16z/eliza/src/characterJsonManager.ts";
 import { composeContext } from "@ai16z/eliza/src/context.ts";
 import { wait, sendTweet, buildConversationThread } from "./utils.ts"; // Adjust the import path as necessary
 import { generateImage, generateMessageResponse, generateText } from "@ai16z/eliza/src/generation.ts";
@@ -252,8 +253,6 @@ export class TwitterInteractPeopleClient extends ClientBase {
         return decideIfShouldGenerateImageResponse;
     }
 
-
-
     private async respondToTweet(selectedTweet: any, formattedHomeTimeline: any) {
         if (!selectedTweet) {
             return console.log("No selected tweet found");
@@ -345,7 +344,9 @@ export class TwitterInteractPeopleClient extends ClientBase {
             return { text: "", action: "IGNORE" };
         }
 
-        let state = await this.runtime.composeState(message, {
+        let cuteCharacter = await characterJsonManager.getCuteCharacter();
+
+        let state = await this.runtime.composeState(message, cuteCharacter,{
             twitterClient: this.twitterClient,
             twitterUserName: this.runtime.getSetting("TWITTER_USERNAME"),
             timeline: formattedHomeTimeline,

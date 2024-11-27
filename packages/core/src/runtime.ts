@@ -42,6 +42,7 @@ import {
     type Memory,
 } from "./types.ts";
 import { stringToUuid } from "./uuid.ts";
+import { characterJsonManager } from "./characterJsonManager.ts";
 
 /**
  * Represents the runtime environment for an agent, handling message processing,
@@ -207,6 +208,7 @@ export class AgentRuntime implements IAgentRuntime {
         fetch?: typeof fetch | unknown;
         speechModelPath?: string;
     }) {
+
         this.#conversationLength =
             opts.conversationLength ?? this.#conversationLength;
         this.databaseAdapter = opts.databaseAdapter;
@@ -219,7 +221,8 @@ export class AgentRuntime implements IAgentRuntime {
         console.log("Agent ID", this.agentId);
 
         this.fetch = (opts.fetch as typeof fetch) ?? this.fetch;
-        this.character = opts.character || defaultCharacter;
+
+
         if (!opts.databaseAdapter) {
             throw new Error("No database adapter provided");
         }
@@ -301,7 +304,7 @@ export class AgentRuntime implements IAgentRuntime {
             opts.character.knowledge &&
             opts.character.knowledge.length > 0
         ) {
-            this.processCharacterKnowledge(opts.character.knowledge);
+            this.processCharacterKnowledge(this.character, opts.character.knowledge);
         }
     }
 
@@ -311,13 +314,13 @@ export class AgentRuntime implements IAgentRuntime {
      * then chunks the content into fragments, embeds each fragment, and creates fragment memories.
      * @param knowledge An array of knowledge items containing id, path, and content.
      */
-    private async processCharacterKnowledge(knowledge: string[]) {
+    private async processCharacterKnowledge(character: Character, knowledge: string[]) {
         // ensure the room exists and the agent exists in the room
         this.ensureRoomExists(this.agentId);
         this.ensureUserExists(
             this.agentId,
-            this.character.name,
-            this.character.name
+            character.name,
+            character.name
         );
         this.ensureParticipantExists(this.agentId, this.agentId);
 
@@ -330,7 +333,7 @@ export class AgentRuntime implements IAgentRuntime {
             if (!existingDocument) {
                 console.log(
                     "Processing knowledge for ",
-                    this.character.name,
+                    character.name,
                     " - ",
                     knowledgeItem.slice(0, 100)
                 );
@@ -370,16 +373,7 @@ export class AgentRuntime implements IAgentRuntime {
     }
 
     getSetting(key: string) {
-        // check if the key is in the character.settings.secrets object
-        if (this.character.settings?.secrets?.[key]) {
-            return this.character.settings.secrets[key];
-        }
-        // if not, check if it's in the settings object
-        if (this.character.settings?.[key]) {
-            return this.character.settings[key];
-        }
 
-        // if not, check if it's in the settings object
         if (settings[key]) {
             return settings[key];
         }
@@ -536,7 +530,6 @@ export class AgentRuntime implements IAgentRuntime {
                 evaluatorNames,
             } as State,
             template:
-                this.character.templates?.evaluationTemplate ||
                 evaluationTemplate,
         });
 
@@ -618,6 +611,7 @@ export class AgentRuntime implements IAgentRuntime {
     async ensureConnection(
         userId: UUID,
         roomId: UUID,
+        characterName: string,
         userName?: string,
         userScreenName?: string,
         source?: string
@@ -625,8 +619,8 @@ export class AgentRuntime implements IAgentRuntime {
         await Promise.all([
             this.ensureUserExists(
                 this.agentId,
-                this.character.name ?? "Agent",
-                this.character.name ?? "Agent",
+                characterName ?? "Agent",
+                characterName ?? "Agent",
                 source
             ),
             this.ensureUserExists(
@@ -666,7 +660,8 @@ export class AgentRuntime implements IAgentRuntime {
      */
     async composeState(
         message: Memory,
-        additionalKeys: { [key: string]: unknown } = {}
+        additionalKeys: { [key: string]: unknown } = {},
+        inputCharacter?: Character
     ) {
         const { userId, roomId } = message;
 
@@ -713,10 +708,15 @@ export class AgentRuntime implements IAgentRuntime {
             (actor: Actor) => actor.id === userId
         )?.name;
 
+        if(inputCharacter == null)
+        {
+            inputCharacter = this.character;
+        }
+
         // TODO: We may wish to consolidate and just accept character.name here instead of the actor name
         const agentName =
             actorsData?.find((actor: Actor) => actor.id === this.agentId)
-                ?.name || this.character.name;
+                ?.name || inputCharacter.name;
 
         let allAttachments = message.content.attachments || [];
 
@@ -766,15 +766,15 @@ Text: ${attachment.text}
         // randomly get 3 bits of lore and join them into a paragraph, divided by \n
         let lore = "";
         // Assuming this.lore is an array of lore bits
-        if (this.character.lore && this.character.lore.length > 0) {
-            const shuffledLore = [...this.character.lore].sort(
+        if (inputCharacter.lore && inputCharacter.lore.length > 0) {
+            const shuffledLore = [...inputCharacter.lore].sort(
                 () => Math.random() - 0.5
             );
             const selectedLore = shuffledLore.slice(0, 10);
             lore = selectedLore.join("\n");
         }
 
-        const formattedCharacterPostExamples = this.character.postExamples
+        const formattedCharacterPostExamples = inputCharacter.postExamples
             .sort(() => 0.5 - Math.random())
             .map((post) => {
                 const messageString = `${post}`;
@@ -783,7 +783,7 @@ Text: ${attachment.text}
             .slice(0, 50)
             .join("\n");
 
-        const formattedCharacterMessageExamples = this.character.messageExamples
+        const formattedCharacterMessageExamples = inputCharacter.messageExamples
             .sort(() => 0.5 - Math.random())
             .slice(0, 5)
             .map((example) => {
@@ -839,6 +839,7 @@ Text: ${attachment.text}
                 : [];
 
         const getRecentMessageInteractions = async (
+            inputCharacter: Character,
             recentInteractionsData: Memory[]
         ): Promise<string> => {
             // Format the recent messages
@@ -847,7 +848,7 @@ Text: ${attachment.text}
                     const isSelf = message.userId === this.agentId;
                     let sender;
                     if (isSelf) {
-                        sender = this.character.name;
+                        sender = inputCharacter.name;
                     } else {
                         const accountId =
                             await this.databaseAdapter.getAccountById(
@@ -863,7 +864,7 @@ Text: ${attachment.text}
         };
 
         const formattedMessageInteractions =
-            await getRecentMessageInteractions(recentInteractions);
+            await getRecentMessageInteractions(this.character, recentInteractions);
 
         const getRecentPostInteractions = async (
             recentInteractionsData: Memory[],
@@ -884,7 +885,7 @@ Text: ${attachment.text}
         );
 
         // if bio is a string, use it. if its an array, pick one at random
-        let bio = this.character.bio || "";
+        let bio = inputCharacter.bio || "";
         if (Array.isArray(bio)) {
             // get three random bio strings and join them with " "
             bio = bio
@@ -923,11 +924,11 @@ Text: ${attachment.text}
             bio,
             lore,
             adjective:
-                this.character.adjectives &&
-                this.character.adjectives.length > 0
-                    ? this.character.adjectives[
+                inputCharacter.adjectives &&
+                inputCharacter.adjectives.length > 0
+                    ? inputCharacter.adjectives[
                           Math.floor(
-                              Math.random() * this.character.adjectives.length
+                              Math.random() * inputCharacter.adjectives.length
                           )
                       ]
                     : "",
@@ -940,25 +941,25 @@ Text: ${attachment.text}
             recentInteractionsData: recentInteractions,
             // randomly pick one topic
             topic:
-                this.character.topics && this.character.topics.length > 0
-                    ? this.character.topics[
+                inputCharacter.topics && inputCharacter.topics.length > 0
+                    ? inputCharacter.topics[
                           Math.floor(
-                              Math.random() * this.character.topics.length
+                              Math.random() * inputCharacter.topics.length
                           )
                       ]
                     : null,
             topics:
-                this.character.topics && this.character.topics.length > 0
-                    ? `${this.character.name} is interested in ` +
-                      this.character.topics
+                inputCharacter.topics && inputCharacter.topics.length > 0
+                    ? `${inputCharacter.name} is interested in ` +
+                     inputCharacter.topics
                           .sort(() => 0.5 - Math.random())
                           .slice(0, 5)
                           .map((topic, index) => {
-                              if (index === this.character.topics.length - 2) {
+                              if (index === inputCharacter.topics.length - 2) {
                                   return topic + " and ";
                               }
                               // if last topic, don't add a comma
-                              if (index === this.character.topics.length - 1) {
+                              if (index === inputCharacter.topics.length - 1) {
                                   return topic;
                               }
                               return topic + ", ";
@@ -969,7 +970,7 @@ Text: ${attachment.text}
                 formattedCharacterPostExamples &&
                 formattedCharacterPostExamples.replaceAll("\n", "").length > 0
                     ? addHeader(
-                          `# Example Posts for ${this.character.name}`,
+                          `# Example Posts for ${inputCharacter.name}`,
                           formattedCharacterPostExamples
                       )
                     : "",
@@ -978,18 +979,18 @@ Text: ${attachment.text}
                 formattedCharacterMessageExamples.replaceAll("\n", "").length >
                     0
                     ? addHeader(
-                          `# Example Conversations for ${this.character.name}`,
+                          `# Example Conversations for ${inputCharacter.name}`,
                           formattedCharacterMessageExamples
                       )
                     : "",
             messageDirections:
-                this.character?.style?.all?.length > 0 ||
-                this.character?.style?.chat.length > 0
+                inputCharacter?.style?.all?.length > 0 ||
+                inputCharacter?.style?.chat.length > 0
                     ? addHeader(
-                          "# Message Directions for " + this.character.name,
+                          "# Message Directions for " + inputCharacter.name,
                           (() => {
-                              const all = this.character?.style?.all || [];
-                              const chat = this.character?.style?.chat || [];
+                              const all = inputCharacter?.style?.all || [];
+                              const chat = inputCharacter?.style?.chat || [];
                               const shuffled = [...all, ...chat].sort(
                                   () => 0.5 - Math.random()
                               );
@@ -1002,13 +1003,13 @@ Text: ${attachment.text}
                       )
                     : "",
             postDirections:
-                this.character?.style?.all?.length > 0 ||
-                this.character?.style?.post.length > 0
+                inputCharacter?.style?.all?.length > 0 ||
+                inputCharacter?.style?.post.length > 0
                     ? addHeader(
-                          "# Post Directions for " + this.character.name,
+                          "# Post Directions for " + inputCharacter.name,
                           (() => {
-                              const all = this.character?.style?.all || [];
-                              const post = this.character?.style?.post || [];
+                              const all = inputCharacter?.style?.all || [];
+                              const post = inputCharacter?.style?.post || [];
                               const shuffled = [...all, ...post].sort(
                                   () => 0.5 - Math.random()
                               );
@@ -1113,7 +1114,7 @@ Text: ${attachment.text}
                     ? formatEvaluatorExamples(evaluatorsData)
                     : "",
             providers: addHeader(
-                `# Additional Information About ${this.character.name} and The World`,
+                `# Additional Information About ${inputCharacter.name} and The World`,
                 providers
             ),
         };

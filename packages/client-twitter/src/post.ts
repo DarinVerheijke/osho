@@ -6,6 +6,7 @@ import { embeddingZeroVector } from "@ai16z/eliza/src/memory.ts";
 import { IAgentRuntime, ModelClass } from "@ai16z/eliza/src/types.ts";
 import { stringToUuid } from "@ai16z/eliza/src/uuid.ts";
 import { ClientBase } from "./base.ts";
+import { characterJsonManager } from "@ai16z/eliza/src/characterJsonManager.ts";
 import { generateCaption, generateImage } from "@ai16z/eliza/src/generation.ts";
 const twitterPostTemplate = `{{timeline}}
 
@@ -154,6 +155,8 @@ export class TwitterPostClient extends ClientBase {
                     })
                     .join("\n");
 
+            let rudeCharacter = await characterJsonManager.getRudeCharacter();
+
             const state = await this.runtime.composeState(
                 {
                     userId: this.runtime.agentId,
@@ -161,7 +164,8 @@ export class TwitterPostClient extends ClientBase {
                     agentId: this.runtime.agentId,
                     content: { text: "", action: "" },
                 },
-                {
+                rudeCharacter,
+    {
                     twitterUserName:
                         this.runtime.getSetting("TWITTER_USERNAME"),
                     timeline: formattedHomeTimeline,

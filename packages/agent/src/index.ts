@@ -5,7 +5,6 @@ import { DiscordClientInterface } from "@ai16z/client-discord/src/index.ts";
 import { AutoClientInterface } from "@ai16z/client-auto/src/index.ts";
 import { TelegramClientInterface } from "@ai16z/client-telegram/src/index.ts";
 import { TwitterClientInterface } from "@ai16z/client-twitter/src/index.ts";
-import { defaultCharacter } from "@ai16z/eliza/src/defaultCharacter.ts";
 import { AgentRuntime } from "@ai16z/eliza/src/runtime.ts";
 import settings from "@ai16z/eliza/src/settings.ts";
 import {
@@ -14,6 +13,7 @@ import {
     IDatabaseAdapter,
     ModelProviderName,
 } from "@ai16z/eliza/src/types.ts";
+import { characterJsonManager } from "@ai16z/eliza/src/characterJsonManager.ts";
 import { bootstrapPlugin } from "@ai16z/plugin-bootstrap/src/index.ts";
 import { solanaPlugin } from "@ai16z/plugin-solana/src/index.ts";
 import { nodePlugin } from "@ai16z/plugin-node/src/index.ts";
@@ -101,6 +101,7 @@ export async function loadCharacters(
 
     if (loadedCharacters.length === 0) {
         console.log("No characters found, using default character");
+        const defaultCharacter = await getDefaultCharacter();
         loadedCharacters.push(defaultCharacter);
     }
 
@@ -237,6 +238,10 @@ export async function createAgent(
     });
 }
 
+async function getDefaultCharacter() : Promise<Character>{
+    return characterJsonManager.getDefaultCharacter();
+}
+
 async function startAgent(character: Character, directClient: any) {
     try {
         const token = getTokenForProvider(character.modelProvider, character);
@@ -266,6 +271,8 @@ const startAgents = async () => {
     const args = parseArguments();
 
     let charactersArg = args.characters || args.character;
+
+    const defaultCharacter = await getDefaultCharacter();
 
     let characters = [defaultCharacter];
 

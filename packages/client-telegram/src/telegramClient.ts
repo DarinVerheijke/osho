@@ -2,6 +2,8 @@ import { Context, Telegraf } from "telegraf";
 
 import { IAgentRuntime } from "@ai16z/eliza/src/types.ts";
 import { MessageManager } from "./messageManager.ts";
+import { characterJsonManager } from "@ai16z/eliza/src/characterJsonManager.ts";
+
 import { elizaLogger } from "@ai16z/eliza/src/logger.ts";
 
 export class TelegramClient {
@@ -40,6 +42,11 @@ export class TelegramClient {
             // console.log(`Message Manager bot info: @${this.messageManager.bot}`);
 
             elizaLogger.log("Setting up message handler...");
+
+
+            const defaultCharacterJson = await characterJsonManager.getDefaultCharacter();
+
+            console.log("defaultCharacterJson", defaultCharacterJson);
 
             this.bot.on("message", async (ctx) => {
                 try {

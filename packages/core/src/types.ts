@@ -574,7 +574,8 @@ export interface IAgentRuntime {
     ensureRoomExists(roomId: UUID): Promise<void>;
     composeState(
         message: Memory,
-        additionalKeys?: { [key: string]: unknown }
+        additionalKeys?: { [key: string]: unknown },
+        inputCharacter?: Character
     ): Promise<State>;
     updateRecentMessageState(state: State): Promise<State>;
 }

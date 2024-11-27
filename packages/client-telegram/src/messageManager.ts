@@ -128,6 +128,7 @@ Note that {{agentName}} is capable of reading/seeing/hearing various forms of me
 {{recentMessages}}
 
 # Instructions: Write the next message for {{agentName}}. Include an action, if appropriate. {{actionNames}}
+IMPORTANT: Don't respond with messages longer than 250 characters, or 20 words. Keep your responses short and brief and meaningful. Don't use emojis.
 ` + messageCompletionFooter;
 
 export class MessageManager {

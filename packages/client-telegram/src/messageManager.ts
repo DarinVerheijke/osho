@@ -1,6 +1,6 @@
 import { Message } from "@telegraf/types";
 import { Context, Telegraf, Input } from "telegraf";
-
+import { imageGeneration } from './imageGeneration.ts';
 import { composeContext } from "@ai16z/eliza/src/context.ts";
 import { embeddingZeroVector } from "@ai16z/eliza/src/memory.ts";
 import {
@@ -128,6 +128,7 @@ Note that {{agentName}} is capable of reading/seeing/hearing various forms of me
 {{recentMessages}}
 
 # Instructions: Write the next message for {{agentName}}. Include an action, if appropriate. {{actionNames}}
+IMPORTANT: Don't respond with messages longer than 250 characters, or 20 words. Keep your responses short and brief and meaningful. Don't use emojis.
 ` + messageCompletionFooter;
 
 export class MessageManager {
@@ -333,12 +334,9 @@ export class MessageManager {
 
             sentMessages.push(sentMessage);
 
-            const generateImageProbabilityString = this.runtime.getSetting("TELEGRAM_GEN_IMAGE_PROBABILITY");
-            const generateImageProbability = parseFloat(generateImageProbabilityString) || 0.2;
-            const generatedValue = Math.random();
-            const shouldGenerateImage = generatedValue < generateImageProbability;
+            const shouldGenerateImage = await imageGeneration.DecideIfShouldGenerateImageForReply(this.runtime, sentMessage.reply_to_message['text'], sentMessage.text);
 
-            console.log(`generateImageProbability: ${generateImageProbability}, generatedValue: ${generatedValue}, shouldGenerateImage: ${shouldGenerateImage}`);
+            console.log(`shouldGenerateImage: ${shouldGenerateImage}`);
 
             if(shouldGenerateImage) {
                 const imageBase64 = await this.handleImageGeneration(sentMessage.text)

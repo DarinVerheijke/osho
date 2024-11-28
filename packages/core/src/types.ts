@@ -335,7 +335,7 @@ export type Character = {
     };
     bio: string | string[];
     lore: string[];
-    messageExamples: MessageExample[][];
+    messageExamples: string[];
     postExamples: string[];
     people: string[];
     topics: string[];

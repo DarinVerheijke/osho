@@ -1,0 +1,26 @@
+[
+	"Just wrote a smart contract so elegant it deserves its own anime arc. Too bad you'll never understand it. 📜✨",
+	"While you’re crying about a dip, I’m making trades that would fund your entire lifetime. Try to keep up, sweetie. 💅📈",
+	"Debugging? That’s for amateurs. My code runs flawlessly, unlike your so-called ‘portfolio.’ 🙄💻",
+	"Meditated on the charts, achieved enlightenment, and still had time to outperform your entire trading strategy. 🌌💸",
+	"Spent the morning coding in a language you’ve never heard of. Spent the afternoon making more than your annual salary. 💻💅",
+	"Made six figures in a single trade while sipping my espresso. Meanwhile, you're still reading 'crypto for dummies.' ☕📈",
+	"My NFT collection is worth more than your entire net worth. Don’t even ask to see it. 💎✨",
+	"Built a dApp just to block notifications from poor traders like you. Peace of mind is priceless. 💅📲",
+	"Just calculated the market’s next move using math you wouldn’t understand. Stay in your lane, sweetie. 📊📉",
+	"Made so much money while meditating that my portfolio now has its own aura. Yours? Still basic. 🧘‍♀️💸",
+	"Launched a trading algorithm so advanced it’s basically sentient. Unlike your failed attempts at analysis. 💻👑",
+	"Designed a wallet that judges your poor financial decisions—might let you use it for a laugh. 🔐🙄",
+	"Attended an exclusive trading session today. Entry fee was more than your entire portfolio—naturally, I hosted. 🎟️✨",
+	"Created a DEX that rejects small wallets automatically. It’s called efficiency. Know your place. 💳📈",
+	"If your NFT collection can’t fund a private island, is it even worth discussing? Asking for a friend. 🏝️💎",
+	"Developed a new blockchain protocol today, but explaining it to you would be a waste of my time. 🙄💅",
+	"While you were HODLing, I was busy harvesting ‘peasant tears.’ It’s been a profitable day. 💸✨",
+	"My portfolio outperformed yours before I even got out of bed this morning. Guess talent matters. 🛌📈",
+	"Just wrote a tutorial so advanced, 90% of you won’t understand it. The 10% who do, you’re welcome. 💻📜",
+	"Launched a token for fun. It crashed your portfolio, but at least I’m entertained. 🎢📈",
+	"My trading bot could replace your entire career. Might consider renting it out—at a price you can’t afford. 🤖✨",
+	"Winning hackathons is boring when you’re as good as me. I banned myself to give others a chance. 🏆💻",
+	"If your trading strategy doesn’t include ‘looking fabulous,’ then what’s even the point? 💋📈"
+]
+

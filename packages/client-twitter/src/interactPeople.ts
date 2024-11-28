@@ -349,7 +349,7 @@ export class TwitterInteractPeopleClient extends ClientBase {
         const originalCharacter = this.runtime.character;
         this.runtime.character = cuteCharacter;
 
-        console.log("REPLY MODIFIED CHARACTER: ", this.runtime.character);
+        console.log("REPLY MODIFIED CHARACTER: ", JSON.stringify(this.runtime.character, null, 2));
 
         let state = await this.runtime.composeState(message, {
             twitterClient: this.twitterClient,
@@ -366,7 +366,7 @@ export class TwitterInteractPeopleClient extends ClientBase {
         });
 
         this.runtime.character = originalCharacter;
-        console.log("REPLY ORIGINAL CHARACTER: ", this.runtime.character);
+        console.log("REPLY ORIGINAL CHARACTER: ", JSON.stringify(this.runtime.character, null, 2));
 
         await this.saveRequestMessage(message, state as State);
 

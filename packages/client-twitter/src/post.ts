@@ -159,7 +159,7 @@ export class TwitterPostClient extends ClientBase {
             const originalCharacter = this.runtime.character;
             this.runtime.character = rudeCharacter;
 
-            console.log("REPLY MODIFIED CHARACTER: ", this.runtime.character);
+            console.log("POST MODIFIED CHARACTER: ", JSON.stringify(this.runtime.character, null, 2));
 
             const state = await this.runtime.composeState(
                 {
@@ -176,7 +176,7 @@ export class TwitterPostClient extends ClientBase {
             );
 
             this.runtime.character = originalCharacter;
-            console.log("REPLY ORIGINAL CHARACTER: ", this.runtime.character);
+            console.log("POST ORIGINAL CHARACTER: ", JSON.stringify(this.runtime.character, null, 2));
 
             // Generate new tweet
             const context = composeContext({

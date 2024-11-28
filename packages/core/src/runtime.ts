@@ -791,19 +791,13 @@ Text: ${attachment.text}
                     uniqueNamesGenerator({ dictionaries: [names] })
                 );
 
-                return example
-                    .map((message) => {
-                        let messageString = `${message.user}: ${message.content.text}`;
-                        exampleNames.forEach((name, index) => {
-                            const placeholder = `{{user${index + 1}}}`;
-                            messageString = messageString.replaceAll(
-                                placeholder,
-                                name
-                            );
-                        });
-                        return messageString;
-                    })
-                    .join("\n");
+                let messageString = example;
+                exampleNames.forEach((name, index) => {
+                    const placeholder = "{{user1}}";
+                    messageString = messageString.replaceAll(placeholder, name);
+                });
+
+                return messageString;
             })
             .join("\n\n");
 

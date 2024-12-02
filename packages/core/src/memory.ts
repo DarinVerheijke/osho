@@ -87,7 +87,15 @@ export class MemoryManager implements IMemoryManager {
             start,
             end,
         });
-        return result;
+        const sortedResult = result.sort((a, b) => {
+            if (a.createdAt !== b.createdAt) {
+                return a.createdAt - b.createdAt;
+            }
+
+            return a.id.localeCompare(b.id);
+        });
+
+        return sortedResult;
     }
 
     async getCachedEmbeddings(content: string): Promise<

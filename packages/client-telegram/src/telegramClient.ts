@@ -8,15 +8,28 @@ export class TelegramClient {
     private bot: Telegraf<Context>;
     private runtime: IAgentRuntime;
     private messageManager: MessageManager;
+    private messageQueue: Map<string, Promise<void>>; // Message queue for sequential handling
 
     constructor(runtime: IAgentRuntime, botToken: string) {
         elizaLogger.log("📱 Constructing new TelegramClient...");
         this.runtime = runtime;
         this.bot = new Telegraf(botToken);
         this.messageManager = new MessageManager(this.bot, this.runtime);
+        this.messageManager = new MessageManager(this.bot, this.runtime);
+        this.messageQueue = new Map();
 
         elizaLogger.log("✅ TelegramClient constructor completed");
     }
+
+    private async enqueueMessage(userId: string, handler: () => Promise<void>): Promise<void> {
+        const currentQueue = this.messageQueue.get(userId) || Promise.resolve();
+        const nextQueue = currentQueue.then(handler).catch((error) => {
+            console.error("❌ Error processing message in queue:", error);
+        });
+        this.messageQueue.set(userId, nextQueue);
+        await nextQueue;
+    }
+
 
     public async start(): Promise<void> {
         elizaLogger.log("🚀 Starting Telegram bot...");
@@ -42,14 +55,9 @@ export class TelegramClient {
             elizaLogger.log("Setting up message handler...");
 
             this.bot.on("message", async (ctx) => {
-                try {
-                    console.log("📥 Received message:", ctx.message);
-                    await this.messageManager.handleMessage(ctx);
-                } catch (error) {
-                    elizaLogger.error("❌ Error handling message:", error);
-                    await ctx.reply(
-                        "An error occurred while processing your message."
-                    );
+                const userId = ctx.from?.id?.toString();
+                if (userId) {
+                    await this.enqueueMessage(userId, () => this.messageManager.handleMessage(ctx));
                 }
             });
 

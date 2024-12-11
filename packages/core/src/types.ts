@@ -329,6 +329,7 @@ export type Character = {
     name: string;
     system?: string;
     modelProvider: ModelProviderName;
+    imageModelProvider: ModelProviderName;
     modelEndpointOverride?: string;
     templates?: {
         [key: string]: string;

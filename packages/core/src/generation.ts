@@ -1,8 +1,16 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGroq } from "@ai-sdk/groq";
 import { createOpenAI } from "@ai-sdk/openai";
-import { getModel } from "./models.ts";
-import { IImageDescriptionService, ModelClass, Service } from "./types.ts";
+import models, { getModel } from "./models.ts";
+import {
+    Content,
+    IAgentRuntime,
+    IImageDescriptionService,
+    ITextGenerationService,
+    ModelClass,
+    ModelProviderName,
+    ServiceType,
+} from "./types.ts";
 import { generateText as aiGenerateText } from "ai";
 import { Buffer } from "buffer";
 import { createOllama } from "ollama-ai-provider";
@@ -10,7 +18,6 @@ import OpenAI from "openai";
 import { default as tiktoken, TiktokenModel } from "tiktoken";
 import Together from "together-ai";
 import { elizaLogger } from "./index.ts";
-import models from "./models.ts";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import {
     parseBooleanFromText,
@@ -19,13 +26,6 @@ import {
     parseShouldRespondFromText,
 } from "./parsing.ts";
 import settings from "./settings.ts";
-import {
-    Content,
-    IAgentRuntime,
-    ITextGenerationService,
-    ModelProviderName,
-    ServiceType,
-} from "./types.ts";
 
 /**
  * Send a message to the model for a text generateText - receive a string back and parse how you'd like
@@ -672,16 +672,21 @@ export const generateImage = async (
         count = 1;
     }
 
-    const model = getModel(runtime.character.modelProvider, ModelClass.IMAGE);
-    const modelSettings = models[runtime.character.modelProvider].imageSettings;
+    const model = getModel(runtime.character.imageModelProvider, ModelClass.IMAGE);
+    const modelSettings = models[runtime.character.imageModelProvider].imageSettings;
     // some fallbacks for backwards compat, should remove in the future
-    const apiKey =
+    let apiKey =
         runtime.getSetting("TOGETHER_API_KEY") ??
         runtime.getSetting("OPENAI_API_KEY") ??
         runtime.token;
+
+    if(runtime.character.imageModelProvider === ModelProviderName.OPENAI){
+        apiKey = runtime.getSetting("OPENAI_API_KEY");
+    }
+
     console.log("apiKey", apiKey);
     try {
-        if (runtime.character.modelProvider === ModelProviderName.LLAMACLOUD || runtime.character.modelProvider === ModelProviderName.ANTHROPIC) {
+        if (runtime.character.imageModelProvider === ModelProviderName.LLAMACLOUD || runtime.character.imageModelProvider === ModelProviderName.ANTHROPIC) {
             const together = new Together({ apiKey: apiKey as string });
             const response = await together.images.create({
                 model: "black-forest-labs/FLUX.1.1-pro",

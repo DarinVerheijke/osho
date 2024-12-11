@@ -6,6 +6,7 @@ export const defaultCharacter: Character = {
     plugins: [],
     clients: [Clients.TELEGRAM],
     modelProvider: ModelProviderName.ANTHROPIC,
+	imageModelProvider: ModelProviderName.OPENAI,
     settings: {
         secrets: {},
         voice: {

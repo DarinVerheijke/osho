@@ -224,9 +224,17 @@ export class TwitterPostClient extends ClientBase {
             console.log("aiDecidesEveryXPostsString: ", aiDecidesEveryXPostsString);
             console.log("canAIDecide to generate image?: ", canAIDecide);
 
-            if(canAIDecide)
-            {
-                shouldGenerateImage = await this.DecideIfShouldGenerateImage(newTweetContent) === 'true';
+            const forceImageGenPostsString = this.runtime.getSetting("TWITTER_FORCE_IMAGE_GEN_POSTS") || 'false';
+
+            console.log("forceImageGenPostsString: ", forceImageGenPostsString);
+
+            if(forceImageGenPostsString === 'true'){
+                shouldGenerateImage = true;
+            }
+            else {
+                if(canAIDecide) {
+                    shouldGenerateImage = await this.DecideIfShouldGenerateImage(newTweetContent) === 'true';
+                }
             }
 
             console.log("shouldGenerateImage: ", shouldGenerateImage);

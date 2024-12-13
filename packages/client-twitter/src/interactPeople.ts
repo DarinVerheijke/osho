@@ -403,12 +403,20 @@ export class TwitterInteractPeopleClient extends ClientBase {
 
         let shouldGenerateImage = false;
 
-        if(canAIDecide) {
-            shouldGenerateImage = await this.DecideIfShouldGenerateImage(message.content.text, response.text) === 'true';
+        const forceImageGenResponsesString = this.runtime.getSetting("TWITTER_FORCE_IMAGE_GEN_RESPONSES") || 'false';
+
+        console.log("forceImageGenResponsesString: ", forceImageGenResponsesString);
+
+        if(forceImageGenResponsesString === 'true'){
+            shouldGenerateImage = true;
+        }
+        else {
+            if(canAIDecide) {
+                shouldGenerateImage = await this.DecideIfShouldGenerateImage(message.content.text, response.text) === 'true';
+            }
         }
 
         console.log("shouldGenerateImage: ", shouldGenerateImage);
-
 
         let images;
         if (shouldGenerateImage) {
